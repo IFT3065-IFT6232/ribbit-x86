@@ -7,7 +7,7 @@
 ;;;----------------------------------------------------------------------------
 
 ;; Cherchez le mot "TODO" pour trouver tous les endroits où des
-;; modifications sont requises pour l'étape 4.
+;; modifications sont requises pour l'étape 3.
 
 ;;;----------------------------------------------------------------------------
 
@@ -414,8 +414,8 @@
   (x86-add  cgc (x86-r10) (x86-imm-int (* 8 (table-length done)) 0))
 
   ;; TODO...
-  ;; Il y a des modifications à faire ici si vous implémentez un
-  ;; garbage collector.
+  ;; Il y a possiblement des modifications à faire ici si la gestion
+  ;; mémoire est modifiée, par exemple l'ajout d'un garbage collector.
 
   (x86-ret cgc 0))
 

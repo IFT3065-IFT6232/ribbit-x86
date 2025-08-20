@@ -6,8 +6,8 @@
 
 ;;;----------------------------------------------------------------------------
 
-;; Cherchez le mot "TODO" pour trouver tous les endroits où des
-;; modifications sont requises pour l'étape 3.
+;; Cherchez le mot "SOLUTION" pour trouver tous les endroits où des
+;; modifications ont été faites pour l'étape 3.
 
 ;;;----------------------------------------------------------------------------
 
@@ -34,18 +34,25 @@
 
 (def-prim 'rib 3 (lambda (cgc)
   (if debug? (begin (display "#  ") (write '($rib)) (newline)))
-  ;; TODO...
-  (x86-pop  cgc (x86-rax)) ;; ce code est incorrect!
-  (x86-pop  cgc (x86-rax))
-  (x86-pop  cgc (x86-rax))
-  (x86-push cgc (x86-imm-int 400 0))))
+  ;; SOLUTION:
+  (x86-add  cgc (x86-r10) (x86-imm-int (* 8 3) 0)) ;; allocate 3 word block
+  (x86-pop  cgc (x86-mem (* 8 -1) (x86-r10)))      ;; init field2 from stack
+  (x86-pop  cgc (x86-mem (* 8 -2) (x86-r10)))      ;; init field1 from stack
+  (x86-pop  cgc (x86-mem (* 8 -3) (x86-r10)))      ;; init field0 from stack
+  (x86-lea  cgc (x86-rax) (x86-mem -17 (x86-r10))) ;; rax = reference to rib
+  (x86-push cgc (x86-rax))))                       ;; push result = ref to rib
 
 (def-prim 'rib? 1 (lambda (cgc)
   (define done (asm-make-label* cgc))
   (if debug? (begin (display "#  ") (write '($rib?)) (newline)))
-  ;; TODO...
-  (x86-pop  cgc (x86-rax)) ;; ce code est incorrect!
-  (x86-push cgc (x86-imm-int 400 0))))
+  ;; SOLUTION:
+  (x86-pop  cgc (x86-rax))                   ;; pop val into rax
+  (x86-test cgc (x86-al) (x86-imm-int 7 0))  ;; test tag bits of val
+  (x86-mov  cgc (x86-rax) (true-value cgc))  ;; result = #t (maybe)
+  (x86-jne  cgc done)                        ;; tag bits != 0?
+  (x86-mov  cgc (x86-rax) (false-value cgc)) ;; result = #f
+  (x86-label cgc done)
+  (x86-push cgc (x86-rax))))                 ;; push result
 
 (def-prim 'field0 1 (lambda (cgc)
   (if debug? (begin (display "#  ") (write '($field0)) (newline)))
@@ -96,11 +103,17 @@
   (x86-push cgc (x86-rax))))                 ;; push result
 
 (def-prim '< 2 (lambda (cgc)
+  (define done (asm-make-label* cgc))
   (if debug? (begin (display "#  ") (write '($<)) (newline)))
-  ;; TODO...
-  (x86-pop  cgc (x86-rax)) ;; ce code est incorrect!
-  (x86-pop  cgc (x86-rax))
-  (x86-push cgc (x86-imm-int 400 0))))
+  ;; SOLUTION:
+  (x86-pop  cgc (x86-rbx))                   ;; pop y into rbx
+  (x86-pop  cgc (x86-rax))                   ;; pop x into rax
+  (x86-cmp  cgc (x86-rax) (x86-rbx))         ;; compare x and y
+  (x86-mov  cgc (x86-rax) (true-value cgc))  ;; result = #t (maybe)
+  (x86-jl   cgc done)                        ;; x < y?
+  (x86-mov  cgc (x86-rax) (false-value cgc)) ;; result = #f
+  (x86-label cgc done)
+  (x86-push cgc (x86-rax))))                 ;; push result
 
 (def-prim '+ 2 (lambda (cgc)
   (if debug? (begin (display "#  ") (write '($+)) (newline)))
@@ -114,10 +127,12 @@
 
 (def-prim '* 2 (lambda (cgc)
   (if debug? (begin (display "#  ") (write '($*)) (newline)))
-  ;; TODO...
-  (x86-pop  cgc (x86-rax)) ;; ce code est incorrect!
-  (x86-pop  cgc (x86-rax))
-  (x86-push cgc (x86-imm-int 400 0))))
+  ;; SOLUTION:
+  (x86-pop   cgc (x86-rbx))                   ;; pop y into rbx
+  (x86-pop   cgc (x86-rax))                   ;; pop x into rax
+  (x86-sar   cgc (x86-rax) (x86-imm-int 3 0)) ;; untag x
+  (x86-imul2 cgc (x86-rax) (x86-rbx))         ;; multiply rax by rbx
+  (x86-push  cgc (x86-rax))))                 ;; push result = x*y
 
 (def-prim 'quotient 2 (lambda (cgc)
   (if debug? (begin (display "#  ") (write '($quotient)) (newline)))
@@ -225,9 +240,9 @@
 
 (define (gen-jump cgc nargs)
   (if debug? (begin (display "#  ") (write (cons 'jump (cons nargs '()))) (newline)))
-  ;; TODO...
-  (x86-push cgc (x86-imm-int 1 0)) ;; code à remplacer!
-  (x86-call cgc (x86-global-label cgc 'exit)))
+  ;; SOLUTION:
+  (x86-mov cgc (x86-rdi) (x86-mem (* 8 (+ nargs 1)) (x86-rsp))) ;; get proc
+  (x86-jmp cgc (x86-mem -7 (x86-rdi))))                   ;; jump to proc code
 
 (define (gen-ret cgc i n)
   (if debug? (begin (display "#  ") (write (cons 'ret (cons i (cons n '())))) (newline)))
@@ -239,9 +254,10 @@
 
 (define (gen-iffalse cgc lbl)
   (if debug? (begin (display "#  ") (write (cons 'iffalse (cons (asm-label-id lbl) '()))) (newline)))
-  ;; TODO...
-  (x86-push cgc (x86-imm-int 1 0)) ;; code à remplacer!
-  (x86-call cgc (x86-global-label cgc 'exit)))
+  ;; SOLUTION:
+  (x86-pop cgc (x86-rax))                   ;; pop value
+  (x86-cmp cgc (x86-rax) (false-value cgc)) ;; test if it is #f
+  (x86-je  cgc lbl))                        ;; branch to lbl if value is #f
 
 (define (gen-goto cgc lbl)
   (if debug? (begin (display "#  ") (write (cons 'goto (cons (asm-label-id lbl) '()))) (newline)))
@@ -562,10 +578,17 @@
                                   (lambda (cte*)
                                     (let ((nargs (length (cdr expr))))
                                       (if tail?
-                                          (begin
-                                            ;; TODO...
-                                            ;; appel terminal
-                                            #f)
+                                          ;; SOLUTION:
+                                          (let* ((fs
+                                                  (length cte*))
+                                                 (fs*
+                                                  (+ nargs 2))
+                                                 (i
+                                                  (- fs
+                                                     (length (memv #t cte*)))))
+                                            (gen-push-loc cgc i);;push ret addr
+                                            (gen-move cgc fs* (- (+ fs 1) fs*))
+                                            (gen-jump cgc nargs))
                                           (let ((ra (asm-make-label* cgc)))
                                             (gen-push-ra cgc ra)
                                             (gen-jump cgc nargs)
@@ -1229,16 +1252,97 @@
 
 ;; Mutable variable elimination.
 
+;; SOLUTION:
+
 (define (mve expr mutable-vars)
 
-  ;; TODO...
-  ;; Cette fonction fait l'élimination des variables mutables.  Le
-  ;; paramètre mutable-vars est l'ensemble des variables mutables qui
-  ;; se fait calculer par les fonctions mv et mv-list lorsque des
-  ;; formes lambda et let sont rencontrées dans le parcours récursif
-  ;; de expr.
+  (cond ((symbol? expr)
+         (let ((var expr))
+           (if (memv var mutable-vars)
+               (cons '$field0 (cons var '()))
+               var)))
 
-  expr) ;; à compléter!
+        ((pair? expr)
+         (let ((first (car expr)))
+
+           (cond ((eqv? first 'quote)
+                  expr)
+
+                 ((eqv? first 'set!)
+                  (let* ((var (cadr expr))
+                         (val (mve (caddr expr) mutable-vars)))
+                    (cons '$field0-set! (cons var (cons val '())))))
+
+                 ((or (eqv? first 'if) (eqv? first 'begin))
+                  (cons first (mve-list (cdr expr) mutable-vars)))
+
+                 ((eqv? first 'lambda)
+                  (let* ((params (cadr expr))
+                         (body (cddr expr))
+                         (mv-body (mv-list body))
+                         (mutable-params
+                          (intersection mv-body params))
+                         (mutable-vars*
+                          (union (difference mutable-vars params)
+                                 mutable-params))
+                         (body*
+                          (mve-list body
+                                    mutable-vars*)))
+                    (cons 'lambda
+                          (cons params
+                                (if (null? mutable-params)
+                                    body*
+                                    (cons (cons 'let
+                                                (cons (map (lambda (p)
+                                                             (cons p
+                                                                   (cons (cons '$rib
+                                                                               (cons p
+                                                                                     (cons 0
+                                                                                           (cons 0
+                                                                                                 '()))))
+                                                                         '())))
+                                                           mutable-params)
+                                                      body*))
+                                          '()))))))
+
+                 ((eqv? first 'let)
+                  (let* ((bindings (cadr expr))
+                         (body (cddr expr))
+                         (vars (map car bindings))
+                         (mv-body (mv-list body))
+                         (mutable-vars*
+                          (union (difference mutable-vars vars)
+                                 (intersection mv-body vars)))
+                         (body*
+                          (mve-list body
+                                    mutable-vars*)))
+                    (cons 'let
+                          (cons (map (lambda (b)
+                                       (let ((var (car b))
+                                             (val (mve (cadr b)
+                                                       mutable-vars)))
+                                         (cons
+                                          var
+                                          (cons
+                                           (if (memv var mv-body)
+                                               (cons '$rib
+                                                     (cons val
+                                                           (cons 0
+                                                                 (cons 0
+                                                                       '()))))
+                                               val)
+                                           '()))))
+                                     bindings)
+                                body*))))
+
+                 ((assv first prims)
+                  (cons first (mve-list (cdr expr) mutable-vars)))
+
+                 (else
+                  (mve-list expr mutable-vars)))))
+
+        (else
+         (expand-constant expr)))) ;; self-evaluating
 
 (define (mve-list exprs mutable-vars)
   (if (pair? exprs)
@@ -1252,7 +1356,7 @@
 
 (define (cc expr free-vars)
 
-  ;; TODO...
+  ;; SOLUTION:
   ;; Cette fonction fait l'élimination des variables libres (conversion
   ;; des fermetures).
   ;; Le paramètre free-vars est l'ensemble des variables libres qui se
@@ -1269,7 +1373,81 @@
   ;; le nom de la liste car ça changerait la position des autres variables
   ;; libres).
 
-  expr) ;; à compléter!
+  (cond ((symbol? expr)
+         (let* ((var expr)
+                (x (memv var free-vars)))
+           (if x
+               (let* ((n (length free-vars))
+                      (i (- n (length x))))
+                 (get-free-var i n))
+               var)))
+
+        ((pair? expr)
+         (let ((first (car expr)))
+
+           (cond ((eqv? first 'quote)
+                  expr)
+
+                 ((or (eqv? first 'if) (eqv? first 'begin))
+                  (cons first (cc-list (cdr expr) free-vars)))
+
+                 ((eqv? first 'lambda)
+                  (let* ((params (cadr expr))
+                         (params* (cons '$self params))
+                         (body (cddr expr))
+                         (fv-body (fv-list body))
+                         (free-vars*
+                          (difference fv-body params))
+                         (free-vars*-exprs
+                          (map (lambda (var)
+                                 (cc var free-vars))
+                               free-vars*)))
+                    (define (build-env exprs)
+                      (cons '$rib
+                            (cons (car exprs)
+                                  (cons (cadr exprs)
+                                        (cons (if (pair? (cddr exprs))
+                                                  (if (pair? (cdddr exprs))
+                                                      (build-env (cddr exprs))
+                                                      (caddr exprs))
+                                                  0)
+                                              '())))))
+                    (cons '$rib
+                          (cons (cons 'lambda
+                                      (cons params*
+                                            (cc-list body free-vars*)))
+                                (cons (if (pair? free-vars*-exprs)
+                                          (if (pair? (cdr free-vars*-exprs))
+                                              (build-env free-vars*-exprs)
+                                              (car free-vars*-exprs))
+                                          0)
+                                      (cons 1 '()))))))
+
+                 ((eqv? first 'let)
+                  (let* ((bindings (cadr expr))
+                         (body (cddr expr))
+                         (vars (map car bindings))
+                         (free-vars*
+                          (map (lambda (v) (if (memv v vars) #f v))
+                               free-vars))
+                         (body*
+                          (cc-list body free-vars*)))
+                    (cons 'let
+                          (cons (map (lambda (b)
+                                       (let ((var (car b))
+                                             (val (cc (cadr b) free-vars)))
+                                         (cons var (cons val '()))))
+                                     bindings)
+                                body*))))
+
+                 ((assv first prims)
+                  (cons first (cc-list (cdr expr) free-vars)))
+
+                 (else
+                  (cc-list expr free-vars)))))
+
+        (else
+         (expand-constant expr)))) ;; self-evaluating
 
 (define (cc-list exprs free-vars)
   (if (pair? exprs)

@@ -157,17 +157,17 @@
       ($putchar 101) ($putchar 114) ($putchar 114) ($putchar 111)
       ($putchar 114) ($putchar 33) ($putchar 10)))
 
-(begin ;; display "(even 100000000) -- ok"
-  ($putchar 40) ($putchar 101) ($putchar 118) ($putchar 101) ($putchar 110)
-  ($putchar 32) ($putchar 49) ($putchar 48) ($putchar 48) ($putchar 48)
-  ($putchar 48) ($putchar 48) ($putchar 48) ($putchar 48) ($putchar 48)
-  ($putchar 41) ($putchar 32) ($putchar 45) ($putchar 45) ($putchar 32))
-(if (even 100000000)
-    (begin
-      ($putchar 111) ($putchar 107) ($putchar 10))
-    (begin
-      ($putchar 101) ($putchar 114) ($putchar 114) ($putchar 111)
-      ($putchar 114) ($putchar 33) ($putchar 10)))
+;(begin ;; display "(even 100000000) -- ok"
+;  ($putchar 40) ($putchar 101) ($putchar 118) ($putchar 101) ($putchar 110)
+;  ($putchar 32) ($putchar 49) ($putchar 48) ($putchar 48) ($putchar 48)
+;  ($putchar 48) ($putchar 48) ($putchar 48) ($putchar 48) ($putchar 48)
+;  ($putchar 41) ($putchar 32) ($putchar 45) ($putchar 45) ($putchar 32))
+;(if (even 100000000)
+;    (begin
+;      ($putchar 111) ($putchar 107) ($putchar 10))
+;    (begin
+;      ($putchar 101) ($putchar 114) ($putchar 114) ($putchar 111)
+;      ($putchar 114) ($putchar 33) ($putchar 10)))
 
 (begin ;; display "($eqv? 'hello (string->symbol \"hello\")) -- ok"
   ($putchar 40) ($putchar 36) ($putchar 101) ($putchar 113) ($putchar 118)

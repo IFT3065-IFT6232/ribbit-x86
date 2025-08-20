@@ -21,7 +21,7 @@ ifeq ($(UNAME), Darwin)
 # the x86_64 version of GNU gcc using the command:
 #    arch -x86_64 /usr/local/bin/brew install gcc@10
 # See: https://github.com/orgs/Homebrew/discussions/3526
-GCC=gcc-10
+GCC=gcc-14
 else
 # On other systems, just assume that "gcc" is the x86_64 version of GNU gcc.
 GCC=gcc
